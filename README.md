@@ -42,7 +42,7 @@ kelompok-07-jarkom-server/
 ├── README.md              # Dokumentasi teknis proyek
 ├── requirements.txt       # Informasi dependensi lingkungan kerja
 └── main.py                # Titik masuk utama untuk menjalankan server
-
+```
 # Spesifikasi Protokol Komunikasi
 
 Komunikasi menggunakan **TCP Socket** dengan format payload **JSON line-delimited** (diakhiri karakter newline `\n`).
