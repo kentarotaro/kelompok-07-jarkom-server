@@ -42,3 +42,137 @@ kelompok-07-jarkom-server/
 ├── README.md              # Dokumentasi teknis proyek
 ├── requirements.txt       # Informasi dependensi lingkungan kerja
 └── main.py                # Titik masuk utama untuk menjalankan server
+
+# Spesifikasi Protokol Komunikasi
+
+Komunikasi menggunakan **TCP Socket** dengan format payload **JSON line-delimited** (diakhiri karakter newline `\n`).
+
+## 1. Daftar Layanan Server
+
+- `CHAR_COUNT`: Menghitung total karakter pada teks.
+- `WORD_COUNT`: Menghitung total kata pada teks.
+- `REVERSE_STRING`: Membalikkan urutan karakter teks.
+- `REMOVE_VOWELS`: Menghilangkan huruf vokal (`a`, `i`, `u`, `e`, `o`).
+- `MATRIX_3X3`: Menghitung nilai determinan dan invers dari matriks 3x3.
+
+## 2. Format Pertukaran Pesan
+
+### A. Request (Klien -> Server)
+
+Request digunakan oleh klien untuk meminta server menjalankan suatu layanan.
+
+#### Contoh untuk Pemrosesan Teks
+
+```json
+{
+  "type": "REQUEST",
+  "request_id": "req-101",
+  "service": "CHAR_COUNT",
+  "payload": {
+    "text": "Jaringan Komputer UGM"
+  }
+}
+```
+
+#### Contoh untuk Pemrosesan Matriks 3x3
+
+```json
+{
+  "type": "REQUEST",
+  "request_id": "req-102",
+  "service": "MATRIX_3X3",
+  "payload": {
+    "matrix": [
+      [1, 2, 3],
+      [0, 1, 4],
+      [5, 6, 0]
+    ]
+  }
+}
+```
+
+### B. Response (Server -> Klien)
+
+Response dikirim oleh server setelah memproses request dari klien.
+
+#### Response Jika Layanan Aktif
+
+```json
+{
+  "type": "RESPONSE",
+  "request_id": "req-101",
+  "service": "CHAR_COUNT",
+  "status": "SUCCESS",
+  "result": 21
+}
+```
+
+#### Response Jika Layanan Telah Dinonaktifkan
+
+```json
+{
+  "type": "RESPONSE",
+  "request_id": "req-101",
+  "service": "CHAR_COUNT",
+  "status": "DISABLED",
+  "message": "Layanan CHAR_COUNT telah dinonaktifkan oleh server."
+}
+```
+
+### C. Acknowledgement / ACK (Klien -> Server)
+
+Klien memeriksa hasil komputasi dan mengirimkan status evaluasi (`CORRECT` atau `INCORRECT`).
+
+```json
+{
+  "type": "ACK",
+  "request_id": "req-101",
+  "service": "CHAR_COUNT",
+  "status": "INCORRECT"
+}
+```
+
+### D. ACK Confirmation (Server -> Klien)
+
+Server memperbarui status layanan dan mengirimkan daftar layanan yang masih aktif.
+
+```json
+{
+  "type": "ACK_CONFIRM",
+  "request_id": "req-101",
+  "service": "CHAR_COUNT",
+  "action": "DISABLED",
+  "active_services": [
+    "WORD_COUNT",
+    "REVERSE_STRING",
+    "REMOVE_VOWELS",
+    "MATRIX_3X3"
+  ],
+  "server_status": "RUNNING"
+}
+```
+
+> Jika seluruh layanan nonaktif, nilai `server_status` berubah menjadi `TERMINATING` dan server berhenti.
+
+## Petunjuk Penggunaan
+
+### 1. Menjalankan Unit Test
+
+PowerShell:
+
+```powershell
+python -m unittest discover -s tests
+```
+
+### 2. Menjalankan Server
+
+PowerShell:
+
+```powershell
+python main.py
+```
+
+Konfigurasi bawaan:
+
+- **Host:** `0.0.0.0`
+- **Port:** `65432`
